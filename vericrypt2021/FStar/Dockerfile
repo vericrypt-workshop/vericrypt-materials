@@ -42,3 +42,9 @@ RUN emacs --batch \
 	--eval "(package-install 'flycheck)"
 
 COPY --chown=vericrypt:vericrypt .emacs /home/vericrypt/.emacs
+
+RUN wget https://github.com/REPROSEC/dolev-yao-star/archive/refs/heads/vericrypt.zip
+
+RUN unzip dolev-yao-star-vericrypt.zip
+
+ENV DY_HOME="/home/vericrypt/dolev-yao-star-vericrypt"
