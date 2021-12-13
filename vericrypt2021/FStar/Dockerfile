@@ -23,12 +23,13 @@ RUN wget https://github.com/project-everest/everparse/releases/download/v2021.12
 
 RUN tar -xvzf everparse_v2021.12.10_Linux_x86_64.tar.gz
 
+RUN rm everparse_v2021.12.10_Linux_x86_64.tar.gz
+
 ENV FSTAR_HOME="/home/vericrypt/everparse"
 ENV KREMLIN_HOME="/home/vericrypt/everparse"
 ENV QD_HOME="/home/vericrypt/everparse"
 ENV PATH="/home/vericrypt/everparse/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/home/vericrypt/everparse/bin:${LD_LIBRARY_PATH}"
-
 
 RUN sudo apt install -y emacs libglu1-mesa xfonts-terminus fonts-symbola
 
@@ -43,8 +44,12 @@ RUN emacs --batch \
 
 COPY --chown=vericrypt:vericrypt .emacs /home/vericrypt/.emacs
 
-RUN wget https://github.com/REPROSEC/dolev-yao-star/archive/refs/heads/vericrypt.zip
+RUN wget -O dystar.tar.gz https://github.com/REPROSEC/dolev-yao-star/archive/refs/tags/vericrypt21.tar.gz
 
-RUN unzip dolev-yao-star-vericrypt.zip
+RUN tar -xvzf dystar.tar.gz
 
-ENV DY_HOME="/home/vericrypt/dolev-yao-star-vericrypt"
+RUN mv dolev-yao-star-vericrypt21 dystar
+
+RUN rm dystar.tar.gz
+
+ENV DY_HOME="/home/vericrypt/dystar"
