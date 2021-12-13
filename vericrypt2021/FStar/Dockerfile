@@ -53,3 +53,5 @@ RUN mv dolev-yao-star-vericrypt21 dystar
 RUN rm dystar.tar.gz
 
 ENV DY_HOME="/home/vericrypt/dystar"
+
+RUN sudo apt install make
