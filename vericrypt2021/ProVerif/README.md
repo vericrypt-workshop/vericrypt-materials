@@ -38,7 +38,7 @@ https://github.com/FStarLang/FStar/wiki/Running-F%2A-from-a-docker-image
 * Install ocaml, graphviz, and m4 using the package manager of your operating system.
 * Either install from source
     * Download and unpack the source and documentation packages from [https://proverif.inria.fr](https://proverif.inria.fr).
-    * Then, execute the `./build` script in unpacked the ProVerif directory. It might give you an error in the end; ignore it
+    * Then, execute the `./build` script in unpacked the ProVerif directory. It might give you an error in file `display_interact` in the end; ignore it (it happens when building a graphical simulator that we are not going to use).
 * Or on Windows, install from binary
     * Download and unpack the binary and documentation packages from [https://proverif.inria.fr](https://proverif.inria.fr).
 
