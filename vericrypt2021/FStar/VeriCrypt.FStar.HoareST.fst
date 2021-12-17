@@ -92,18 +92,18 @@ let subcomp (a:Type) (s:Type0)
 /// Now package it up as a new F* effect
 
 /// The reflectable annotation says that we may `reflect` computations
-///   from their `repr` type to `MST` effect
+///   from their `repr` type to `ST` effect
 ///
-/// Think of `reflect` as a coercion from `repr` to `MST`,
+/// Think of `reflect` as a coercion from `repr` to `ST`,
 ///   see `get_s` and `put_s` below
 
 reflectable
 effect {
-  MST (a:Type) (s:Type0) (req:req_t s) (ens:ens_t s a)
+  ST (a:Type) (s:Type0) (req:req_t s) (ens:ens_t s a)
   with {repr; return; bind; subcomp}
 }
 
-/// We also define a lift from PURE to MST
+/// We also define a lift from PURE to ST
 
 /// The following two combinators define how to interpret a pure wp
 ///   as a stateful requires and ensures
@@ -116,7 +116,7 @@ unfold
 let lift_pure_st_ens (#a:Type) (s:Type0) (wp:pure_wp a) : ens_t s a =
   fun s0 r s1 -> s0 == s1 /\ as_ensures wp r
 
-let lift_PURE_MST (a:Type) (s:Type0)
+let lift_PURE_ST (a:Type) (s:Type0)
   (wp:pure_wp a)
   (f:eqtype_as_type unit -> PURE a wp)
   : repr a s (lift_pure_st_req s wp) (lift_pure_st_ens s wp)
@@ -125,31 +125,31 @@ let lift_PURE_MST (a:Type) (s:Type0)
     let x = f () in
     x, s0
 
-/// Request F* to use lift_PURE_MST to lift PURE computations to MST
+/// Request F* to use lift_PURE_ST to lift PURE computations to ST
 
-sub_effect PURE ~> MST = lift_PURE_MST
+sub_effect PURE ~> ST = lift_PURE_ST
 
 /// Let's also define two actions, `get` and `put` that manipulate state
 
-let get_s (s:Type0) : MST s s (fun _ -> True) (fun s0 r s1 -> s0 == r /\ r == s1) =
-  MST?.reflect (fun s0 -> s0, s0)
+let get_s (s:Type0) : ST s s (fun _ -> True) (fun s0 r s1 -> s0 == r /\ r == s1) =
+  ST?.reflect (fun s0 -> s0, s0)
 
-let put_s (#s:Type0) (x:s) : MST unit s (fun _ -> True) (fun _ _ s1 -> s1 == x) =
-  MST?.reflect (fun _ -> (), x)
+let put_s (#s:Type0) (x:s) : ST unit s (fun _ -> True) (fun _ _ s1 -> s1 == x) =
+  ST?.reflect (fun _ -> (), x)
 
 
-/// We now have an MST effect, that implements our program logic,
+/// We now have an ST effect, that implements our program logic,
 ///   in our hands that we can write programs with!
 
-/// Let's customize MST to int state
+/// Let's customize ST to int state
 
-effect MSTInt (a:Type) (req:req_t int) (ens:ens_t int a) = MST a int req ens
+effect STInt (a:Type) (req:req_t int) (ens:ens_t int a) = ST a int req ens
 
 /// And the `get` and `put` functions as well
 
-let get () : MSTInt int (fun _ -> True) (fun s0 r s1 -> s0 == r /\ r == s1) = get_s int
+let get () : STInt int (fun _ -> True) (fun s0 r s1 -> s0 == r /\ r == s1) = get_s int
 
-let put (n:int) : MSTInt unit (fun _ -> True) (fun _ _ s1 -> s1 == n) = put_s n
+let put (n:int) : STInt unit (fun _ -> True) (fun _ _ s1 -> s1 == n) = put_s n
 
 /// A function to increment the state
 ///
@@ -162,7 +162,7 @@ let put (n:int) : MSTInt unit (fun _ -> True) (fun _ _ s1 -> s1 == n) = put_s n
 ///   Then it applies subcomp to check that the inferred spec is subsumed
 ///   by the annotated spec
 
-let incr_st (m:int) : MSTInt unit (fun _ -> True) (fun s0 _ s1 -> s1 == s0 + m) =
+let incr_st (m:int) : STInt unit (fun _ -> True) (fun s0 _ s1 -> s1 == s0 + m) =
   let n = get () in
   put (n+m)
 
@@ -176,8 +176,8 @@ let incr_st (m:int) : MSTInt unit (fun _ -> True) (fun s0 _ s1 -> s1 == s0 + m) 
 ///   That's also possible using an if-then-else effect combinator
 
 let rec incr_list (l:list nat)
-  : MSTInt unit (fun _ -> True) (fun s0 _ s1 -> s1 >= s0)
-  = match l returns MSTInt unit (fun _ -> True) (fun s0 _ s1 -> s1 >= s0) with
+  : STInt unit (fun _ -> True) (fun s0 _ s1 -> s1 >= s0)
+  = match l returns STInt unit (fun _ -> True) (fun s0 _ s1 -> s1 >= s0) with
     | [] -> ()
     | hd::tl ->
       let n = get () in
