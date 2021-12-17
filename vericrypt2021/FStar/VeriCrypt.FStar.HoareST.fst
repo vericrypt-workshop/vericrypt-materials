@@ -130,6 +130,8 @@ let lift_PURE_ST (a:Type) (s:Type0)
 sub_effect PURE ~> ST = lift_PURE_ST
 
 /// Let's also define two actions, `get` and `put` that manipulate state
+///
+/// `reflect` coerces from the repr type to ST typex
 
 let get_s (s:Type0) : ST s s (fun _ -> True) (fun s0 r s1 -> s0 == r /\ r == s1) =
   ST?.reflect (fun s0 -> s0, s0)
@@ -138,8 +140,7 @@ let put_s (#s:Type0) (x:s) : ST unit s (fun _ -> True) (fun _ _ s1 -> s1 == x) =
   ST?.reflect (fun _ -> (), x)
 
 
-/// We now have an ST effect, that implements our program logic,
-///   in our hands that we can write programs with!
+/// We now have an ST effect that implements our program logic!
 
 /// Let's customize ST to int state
 
