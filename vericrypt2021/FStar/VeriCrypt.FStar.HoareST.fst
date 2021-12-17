@@ -90,6 +90,10 @@ let subcomp (a:Type) (s:Type0)
   = f
 
 /// Now package it up as a new F* effect
+///
+/// The effect definition requires a repr, return, and bind at the least
+///
+/// Optionally, a subcomp and an if-then-else combinator may also be specified
 
 /// The reflectable annotation says that we may `reflect` computations
 ///   from their `repr` type to `ST` effect
