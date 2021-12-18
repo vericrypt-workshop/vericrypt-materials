@@ -1,0 +1,457 @@
+[INCLUDE=presentation]
+Title         : Proof-oriented Programming with F\*
+Author        : Aseem Rastogi
+Affiliation   : Microsoft Research
+Reveal Theme  : solarized
+Beamer Theme  : singapore
+Colorizer     : aux/fstarlang
+Logo          : False
+Html Header   :
+    <script src="aux/script.js"></script>
+    <link rel="stylesheet" href="aux/style.css" id="custom_style">
+Package       : xypic
+HTML Meta     : clear
+~Pre,~Code: language=fstarlang
+
+~ MathDefs
+[INCLUDE=aux/latex.tex]
+~
+
+# Proof-oriented Programming with F\* #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+[Aseem Rastogi](https://www.microsoft.com/en-us/research/people/aseemr/)
+
+VeriCrypt 2021
+
+~
+
+[fstar-logo]: aux/fstar-new.png { width=200px }
+
+<!------------------------------------------------------------------------------>
+
+## Logistics ##
+
+* Today's sessions: F\* and its applications in High-assurance systems
+
+* See [website](https://vericrypt.org) for detailed schedule
+
+* Ask questions, feel free to interrupt or on Slack
+
+* Slides and code samples available on [github](https://github.com/vericrypt-workshop/vericrypt-materials)
+
+* The github repo also contains a Dockerfile that provides an F\* development environment
+
+<!------------------------------------------------------------------------------>
+
+
+# Acknowledgements #
+
+- Joint work with several collaborators at [**Microsoft Research, Inria Paris, Rosario, CMU, UC Davis, ...**]{color:DarkGreen;}
+  + many former members, interns, external contributors
+
+- Resources
+  + [https://fstar-lang.org](https://fstar-lang.org)
+  + [https://github.com/FStarLang/FStar](https://github.com/FStarLang/FStar)
+
+<!-- # The current F\* team # -->
+
+<!------------------------------------------------------------------------------>
+
+
+## F\*: A PoPL (Proof-oriented Programming Language) ##
+
+<!-- General-purpose -->
+* {.fragment} **[Functional programming language with user-defined effects]{color:Black;}**
+  - like OCaml, F#, Haskell, ...
+    <!-- ``` -->
+    <!-- let incr (r:ref a) = r := !r + 1 -->
+    <!-- ``` -->
+  <!-- - F\* extracted to OCaml or F\# by default -->
+  <!-- - subset of F\* extracted to efficient C code -->
+
+* {.fragment} **[Semi-automated verification system using SMT]{color:DarkBlue;}**
+  - like Dafny, FramaC, Why3, Liquid Types, ...
+
+* {.fragment} **[Expressive core based on dependent type theory]{color:DarkRed;}**
+  <!-- - full dependency, inductive types, universe polymorphism -->
+  - like Coq, Agda, Lean, Nuprl, ...
+
+* {.fragment} **[A metaprogramming and tactic framework<br/>
+  for interactive proof and user-defined automation]{color:DarkGreen;}**
+  - like Coq, Lean, Nuprl, Isabelle, HOL, etc.
+
+
+<!-- * {.fragment} Other tools in this space: -->
+<!--   - DML/ATS, HTT, Idris, Trellys/Zombie, CoqHammer, ... -->
+  <!-- - But F\* is the closest to bridging the gap by nicely integrating these three things -->
+
+<!------------------------------------------------------------------------------>
+
+# Reusable Artifacts Built Using F\*
+
+- [HACL\*](https://github.com/project-everest/hacl-star): A High-Assurance Cryptographic Library
+- [EverCrypt](https://hacl-star.github.io/HaclValeEverCrypt.html): A Fast, Verified, Cross-Platform Cryptographic Provider
+- [EverParse](https://project-everest.github.io/everparse/): A Verified Parser Generator for Binary Message Formats
+- [DICE*](https://www.microsoft.com/en-us/research/publication/dice-a-formally-verified-implementation-of-dice-measured-boot/): A Formally Verified Implementation of DICE Measured Boot
+- [TLS 1.3 Record Layer](https://www.microsoft.com/en-us/research/publication/implementing-proving-tls-1-3-record-layer/)
+- [QUIC Record Layer](https://www.microsoft.com/en-us/research/uploads/prod/2020/10/2020-114.pdf)
+- [DY*](https://github.com/reprosec/dolev-yao-star): Symbolic Verification of Cryptographic Protocols
+- [Signal*](https://eprint.iacr.org/2019/542.pdf): A Verified Implementation of the Signal Messaging Protocol
+- [FastVer](https://www.microsoft.com/en-us/research/publication/fastver-making-data-integrity-a-commodity/): High-integrity key value store
+- ...
+
+<!------------------------------------------------------------------------------>
+
+## Deployed for Billions of Unsuspecting Users ##
+
+~Center
+![deployments]
+~
+
+[deployments]: aux/Billions.png
+
+<!-------------------------------------------------------------------------------->
+
+## Maintaining Proofs at Scale
+
+
+* Our Continuous Integration (CI) system verifies and builds more than 600,000 lines of F\* code
+  - Several times a day!
+
+* In each build ~10^6 proof obligations are discharged by Z3
+
+* What makes it scale?
+  - Domain-specific languages with custom program logics to provide better abstractions and automation mileage
+
+* **Bring Your Own Program Logic**
+
+<!-------------------------------------------------------------------------------->
+
+## Embedded DSLs in F\* for PoP
+
+~Center
+![dsls]
+~
+
+[dsls]: aux/Dsls.png
+
+<!-------------------------------------------------------------------------------->
+
+## Rest of the Day
+
+* F\* tutorial with small examples
+
+* Examples of custom program logics embedded in F\*
+  - A Hoare logic for stateful programs
+  - Embedding and Programming with a Concurrent Separation Logic in F\* (cf. [ICFP'20](https://www.microsoft.com/en-us/research/publication/steelcore-an-extensible-concurrent-separation-logic-for-effectful-dependently-typed-programs/) and [ICFP'21](https://www.microsoft.com/en-us/research/publication/steel-proof-oriented-programming-in-a-dependently-typed-concurrent-separation-logic/))
+
+* EverParse ([Talk](https://www.microsoft.com/en-us/research/video/demo-everparse-automatic-generation-of-formally-verified-secure-parsers-for-cloud-integrity/) and [Demo](https://www.microsoft.com/en-us/research/video/demo-generating-formally-proven-low-level-parsers-with-everparse/))
+
+* DY\* tutorial
+
+<!-------------------------------------------------------------------------------->
+
+## F\* basics : Types
+
+* The empty type with no inhabitants
+```fstar
+type empty =
+```
+
+* {.fragment} The unit type with exactly one inhabitant
+```fstar
+type unit = ()
+```
+
+* {.fragment} The bool type, with two inhabitants
+```fstar
+type bool = true | false
+```
+
+* {.fragment} ...
+
+<!-------------------------------------------------------------------------------->
+
+## Inductive types
+
+* Inductive data types
+```fstar
+type list (a:Type) =
+  | Nil : list a
+  | Cons: a -> list a -> list a
+```
+
+* {.fragment} Indexed families
+```fstar
+type vector (a:Type) : nat -> Type =
+  | VNil : vector a 0
+  | VCons: #n:nat -> a -> vector a n -> vector a (n+1)
+```
+
+<!-------------------------------------------------------------------------------->
+
+## Refinement types
+
+* General form: $x:t\{\phi\}$, where $x$ is free in $\phi$
+
+* Values of type $t$ that satisfy $\phi$
+
+* {.fragment} Examples:
+```fstar
+type nat = n:int{n >= 0}
+type pos = n:int{n > 1}
+type even = n:int{n % 2 = 0}
+```
+
+<!-------------------------------------------------------------------------------->
+
+## Functions
+
+* Example: increment an integer
+```fstar
+let incr (n:int) : int = n + 1
+```
+
+* {.fragment} Higher-order functions
+```fstar 
+let apply_twice (f:int -> int) (n:int) = f (f n)
+let add_two (n:int) = apply_twice incr n
+```
+
+* {.fragment} Polymorphic functions
+```fstar 
+let apply_twice_p (#a:Type) (f:a -> a) (x:a) = f (f x)
+let add_two_p (n:int) = apply_twice_p incr n
+let neg (b:bool) = not b
+let neg_twice (b:bool) = apply_twice_p neg b
+```
+
+<!-------------------------------------------------------------------------------->
+
+## Pattern Matching and Recursive Functions
+
+* Example: length of a list
+```fstar
+let rec length #a (l:list a) : nat =
+    match l with
+    | [] -> 0
+    | _::tl -> 1 + length tl
+```
+
+* {.fragment} Higher-order recursive functions
+```fstar 
+let rec map #a #b (f:a -> b) (l:list a) : list b =
+    match l with
+    | [] -> []
+    | hd::tl -> (f hd)::(map f tl)
+let incr_l (l:list int) = map incr l
+```
+
+<!-------------------------------------------------------------------------------->
+## Termination Checking
+
+* Sum of n numbers
+```fstar
+let rec sum (n:int) : int =
+    if n = 0 then 0
+    else n + sum (n - 1)
+```
+
+* {.fragment} Fails with 
+```fstar
+(Error) Could not prove termination of this recursive call; The SMT solver could not prove the query
+```
+
+* {.fragment} The functions does not terminate
+  - Whereas we asked F\* to typecheck it as a terminating function
+
+<!-------------------------------------------------------------------------------->
+
+## Termination Checking
+
+* Based on precedes (<<) relation
+  - for natural numbers, m < n ==> m << n
+  - inductives are related by subterm ordering (tl << hd::tl)
+    - x << C x
+    - f y << C f
+  - lexicographic tuples %[e1; e2; ...]
+    - [e1; e2] << [e3; e4] if e1 << e3 or e1 = e3 and e2 << e4
+
+* Sum function on natural numbers (note that refinements are discharged automatically)
+```fstar
+let rec sum (n:nat) : nat =
+    if n = 0 then 0
+    else n + sum (n - 1)
+```
+* In general, can provide arbitrary total functions as the decreasing metric
+
+<!-------------------------------------------------------------------------------->
+
+## Dependent Functions
+
+* Dependent function types, the types may refer to the parameters
+```fstar
+let rec append (#a:Type) (#n1 #n2:nat) (v1:vector a n1) (v2:vector a n2) : vector a (n1+n2) = ...
+```
+
+* Can be combined with the refinements
+```fstar
+let incr (n:int) : m:int{m = n+1} = n+1
+```
+
+<!-------------------------------------------------------------------------------->
+
+## Lemmas
+
+* Extrinsic proofs
+```fstar
+let rec length #a (l:list a) =
+    match l with
+    | [] -> 0
+    | _::tl -> 1 + length tl
+let rec append #a (l1 l2:list a) =
+    match l1 with
+    | [] -> l2
+    | hd::tl -> hd::(append tl l2)
+```
+
+* {.fragment} Prove that length of append is the sum of two lists
+```fstar
+let append_length #a (l1 l2:list a)
+    : Lemma (length (append l1 l2) = length l1 + length l2)
+    = match l1 with
+      | [] -> ()
+      | _::tl -> append_length tl l2
+```
+
+* {.fragment} Proof by induction on the first list
+
+<!-------------------------------------------------------------------------------->
+
+## Demo
+
+<!-------------------------------------------------------------------------------->
+
+## Behind The Scenes
+
+* F\* assigns every expression $e$ a computation type of the form $\mathtt{PURE}\;a\;w$,
+  - $a$ is the return type of the expression, and
+  - $w$ is the weakest precondition transformer for $e$
+
+* Specifically, $w : (a \rightarrow \mathtt{prop}) \rightarrow \mathtt{prop}$
+  - i.e. given a postcondition $p$, if ($w\;p$) holds before computing $e$, then $e$ terminates in a value $v$, s.t. ($p\;v$) is valid
+
+* F\* infers a computation type
+  - A value $v:a$ has type $\mathtt{PURE}\;a\;(\lambda p. p\;v)$
+  - $\mathtt{let}\;x = e_1\;\mathtt{in}\;e_2$ has type $\mathtt{PURE}\;b\;(\lambda p. w_1 (\lambda x. w_2\;x\;p))$, where $e_1:\mathtt{PURE}\;a\;w_1$ and $x \vdash e_2:\mathtt{PURE}\;b\;(w2\;x)$
+
+* And checks that it is a subtype of the annotated type
+  - $w_1 <: w_2$ if $\forall p. w_2\;p \Rightarrow w_1\;p$
+
+<!-------------------------------------------------------------------------------->
+
+## Various Forms of $\mathtt{PURE}$
+
+* $\mathtt{Tot}\;a$, total computations with trivial pre- and postconditions
+  - i.e. $\mathtt{PURE}\;a\;(\lambda p. \forall x. p\;x)$
+
+* Co-domain of arrow types in F\* are always computation types
+
+* $a \rightarrow b$ is a sugar for $a \rightarrow \mathtt{Tot}\;b$
+
+* $\mathtt{Pure}\;a\;p\;q$ is a sugar for $\mathtt{PURE}\;a\;(\lambda r. p \wedge (\forall x. q\;x \Rightarrow r\;x))$
+
+* $\mathtt{Lemma}\;p\;q$ is a sugar for $\mathtt{Pure}\;\mathtt{unit}\;p\;(\lambda \_. q)$
+
+<!-------------------------------------------------------------------------------->
+
+## Demo - 2
+
+
+<!-------------------------------------------------------------------------------->
+
+## Encoding and Programming-with Custom Program Logics
+
+* So far, we have seen reasoning about pure programs in F\*
+
+* Domain-specific logics
+  - Provide suitable abstractions for proofs
+  - E.g. Hoare logic for stateful programs, Separation logic for concurrent programs, ...
+
+* We would like to not only encode such logics, but also program with them in the dependent type theory of F\*
+  - In its full glory with inductives, recursive functions, refinements, etc.
+
+<!-------------------------------------------------------------------------------->
+
+## Hoare Logic for Stateful Programs
+
+* Hoare tripes of the form $\{p\}\;\;e\;\;\{q\}$, where:
+  - $p$ is a precondition on the input state ($s \rightarrow \mathtt{prop}$)
+  - $q$ is a two-state postcondition ($s \rightarrow a \rightarrow s \rightarrow \mathtt{prop}$)
+  - Interpretation in a total and partial correctness setting
+
+* Inference rules:
+  - $\{\lambda \_.\top\}\;v\;\{\lambda s_0\;r\;s_1. s_0 = s_1 \wedge r = v\}$
+  - $\{\lambda s_0. p_1\;s_0 \wedge \forall x\;s_1. q_1\;s_0\;x\;s_1 \Rightarrow p_2\;x\;s_0\}$
+  
+    $\mathtt{let}\;x = e_1\;\mathtt{in}\;e_2$
+    
+    $\{\lambda s_0\;r\;s_2. \exists x\;s_1. q_1\;s_0\;x\;s_1 \wedge q_2\;x\;s_1\;r\;s_2\}$
+    
+    where $\{p_1\}\;e_1\;\{q_1\}$ and $\{x.p_2\}\;x.e_2\;\{x.q_2\}$
+
+* (The effect is not wp-based like $\mathtt{PURE}$.)
+
+
+<!-------------------------------------------------------------------------------->
+
+## Demo - 3
+
+
+<!-------------------------------------------------------------------------------->
+
+## Embedding and Programming-with Concurrent Separation Logic in F\*
+
+* Created by John Reynolds, originally for reasoning about stateful programs
+  - One of the main connectives: separating conjunction (a.k.a. star)
+  - Indicates disjointness of memory locations
+
+* Widely applicable to resources/ownership/assertions
+
+* And also to concurrent programs!
+
+* {.fragment} $\{r \mapsto \_\}\;\;r := v\;\;\{r \mapsto v\}$
+
+* {.fragment} If $\{P\}\;\;c\;\;\{Q\}$ then $\{P * F\}\;\;c\;\;\{Q * F\}$ ($F$ is called a frame)
+
+* {.fragment} If $\forall i. \{P_i\}\;\;c_i\;\;\{Q_i\}$ then $\{P_1 * P_2\}\;\;c_1 || c_2\;\;\{Q_1 * Q_2\}$
+
+<!-------------------------------------------------------------------------------->
+
+## Challenges and Methodology
+
+* F\* has no primitive support for concurrency
+  - How do we represent concurrent computations
+  - How do we implement their semantics and derive the logic off of it
+  - How do we reflect it all as a shallow-embedding, integrated with the rest of the F\*
+
+
+* {.fragment} Methodology
+  - Represent concurrent computations using action trees
+  - Provide an interleaving semantics for the tree objects using a definitional interpreter
+  - Intrinsically derive the program logic within the semantics
+  - Reflect it in F\* using an effect
+
+* {.fragment} Steel: A higher-order concurrent separation logic in F\*
+  - [ICFP'20](https://www.microsoft.com/en-us/research/publication/steelcore-an-extensible-concurrent-separation-logic-for-effectful-dependently-typed-programs/), semantics and logic
+  - [ICFP'21](https://www.microsoft.com/en-us/research/publication/steel-proof-oriented-programming-in-a-dependently-typed-concurrent-separation-logic/), proof automation
+  - See ulib/experimental/Steel*
+
+
+<!-------------------------------------------------------------------------------->
+
+## Demo - 4
+

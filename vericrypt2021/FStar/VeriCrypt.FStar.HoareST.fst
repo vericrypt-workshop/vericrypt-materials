@@ -1,5 +1,9 @@
 module VeriCrypt.FStar.HoareST
 
+/// See https://www.fstar-lang.org/papers/indexedeffects/
+///   for the technical report for indexed effects in F*
+
+
 /// Deriving a hoare logic for stateful programs,
 ///   and integrating it into F* as a shallow-embedding
 ///
