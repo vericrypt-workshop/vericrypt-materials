@@ -1,0 +1,88 @@
+(* Denning Sacco protocol *)
+
+(* Informal description
+  [u]_sk : Signature of u with the signing key sk
+  {u}_pkA : Public encryption of u with the public key pk of A
+  {u}_k : Symmetric encryption of u with the symmetric key k
+
+  Message 1. A -> B :  { [k]_skA }_pkB  k fresh
+  Message 2. B -> A :  { s }_k
+
+  Properties:
+    - secrecy of s
+    - authentication
+*)
+
+(* Types Declarations *)
+
+type key.     (* Secret keys for symmetric encryption/decryption *)
+type scipher. (* Output of symmetric encryption *)
+
+type eskey.   (* Secret keys for asymmetric decryption *)
+type epkey.   (* Public keys for asymmetric encryption *)
+type pcipher. (* Output of asymmetric encryption *)
+
+type sskey.   (* Signing keys *)
+type svkey.   (* Verification keys *)
+type signature.     (* Signature *)
+
+(* Declarations of functions, equational theories and rewrite rules *)
+
+(* Symmetric encryption/decryption *)
+fun sencrypt(bitstring,key):scipher.
+fun sdecrypt(scipher,key):bitstring
+reduc
+  forall x:bitstring,k:key; sdecrypt(sencrypt(x,k),k) = x.
+
+(* Asymmetric encryption/decryption *)
+fun pk(eskey):epkey.
+fun pencrypt(bitstring,epkey):pcipher.
+fun pdecrypt(pcipher,eskey):bitstring
+reduc
+  forall x:bitstring,k:eskey; pdecrypt(pencrypt(x,pk(k)),k) = x.
+
+(* Signature *)
+fun vk(sskey):svkey.
+fun sign(bitstring,sskey):signature.
+fun checksign(signature,svkey):bitstring
+reduc
+  forall x:bitstring,k:sskey; checksign(sign(x,k),vk(k)) = x.
+
+(* Type converter *)
+fun key2bit(key):bitstring [typeConverter].
+fun sig2bit(signature):bitstring [typeConverter].
+
+(* Declarations of constants and names *)
+
+free c:channel.
+free s:bitstring [private].
+
+(* Other declarations *)
+
+
+
+(* Declarations of the processes for each role. *)
+
+let Initiator(sskA:sskey,pkB:epkey) =
+  new k:key;
+  let sig = sign(key2bit(k),sskA) in
+  out(c,pencrypt(sig2bit(sig),pkB));
+
+  in(c,x:scipher);
+  let s = sdecrypt(x,k) in
+  0
+.
+
+let Receiver(eskB:eskey,svkA:svkey) =
+  in(c,x:pcipher);
+  let sig2bit(sig) = pdecrypt(x,eskB) in
+  let key2bit(k) = checksign(sig,svkA) in
+  out(c,sencrypt(s,k))
+.
+
+(* Declaration of the security properties *)
+
+
+
+(* The main system *)
+process 0

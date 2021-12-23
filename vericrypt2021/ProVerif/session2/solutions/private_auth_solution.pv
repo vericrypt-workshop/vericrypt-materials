@@ -1,0 +1,64 @@
+(* Private Authentication
+
+  Assymmetric encryption
+
+  B only want to talk to A
+  A -> B :  { (na, pkA) }_pkB   na fresh, B Checks that pkA is the public key of A
+  B -> A :  { (na, nb, pkB) }_pkA    if the checks passed (nb fresh)
+            { nb }_pkB               otherwise
+
+  Show that this protocol preserves the anonymity of the Initiator
+*)
+
+(* Types Declarations *)
+
+type pkey.    (* Public key *)
+type skey.    (* Secret key *)
+type cipher.  (* The cipher produced by an encryption *)
+
+(* Declarations of functions, equational theories and rewrite rules *)
+
+fun pk(skey):pkey.
+fun encrypt(bitstring,pkey):cipher.
+fun decrypt(cipher,skey):bitstring
+reduc
+  forall m:bitstring, k:skey;
+  decrypt(encrypt(m,pk(k)),k) = m
+.
+(* Declarations of constants and names *)
+
+free c:channel.
+
+(* Roles *)
+
+let Initiator(skA:skey,pkB:pkey) =
+  new na:bitstring;
+  out(c,encrypt((na,pk(skA)),pkB));
+  in(c,x:cipher);
+  let (=na,nb:bitstring,=pkB) = decrypt(x,skA) in
+  0
+.
+
+
+let Receiver(skB:skey,pkA:pkey) =
+  in(c,x:cipher);
+  let (na:bitstring,pkX:pkey) = decrypt(x,skB) in
+  if pkX = pkA
+  then
+    new nb:bitstring;
+    out(c,encrypt((na,nb,pk(skB)),pkA))
+  else
+    new nb:bitstring;
+    out(c,encrypt(nb,pk(skB)))
+.
+
+process
+  new skA:skey;
+  new skB:skey;
+  new skC:skey;
+  let pkA = pk(skA) in
+  let pkB = pk(skB) in
+  let pkC = pk(skC) in
+  out(c,(pkA,pkB,pkC));
+
+  Initiator(choice[skA,skC],pkB) | Receiver(skB,choice[pkA,pkC])

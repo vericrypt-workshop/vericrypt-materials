@@ -1,0 +1,43 @@
+(* Denning Sacco protocol *)
+
+(* Informal description
+  [u]_sk : Signature of u with the signing key sk
+  {u}_pkA : Public encryption of u with the public key pk of A
+  {u}_k : Symmetric encryption of u with the symmetric key k
+
+  Message 1. A -> B :  { [k]_skA }_pkB
+  Message 2. B -> A :  { s }_k
+*)
+
+(* Types Declarations *)
+
+type key.     (* Type of keys for symmetric encryption/decryption *)
+
+type eskey.   (* Secret keys for asymmetric decryption *)
+type epkey.   (* Public keys for asymmetric encryption *)
+
+type sskey.   (* Signing keys *)
+type svkey.   (* Verification keys *)
+
+(* Declarations of functions, equational theories and rewrite rules *)
+
+
+
+(* Declarations of constants and names *)
+
+
+
+(* Other declarations *)
+
+
+
+(* Declarations of the processes for each role. *)
+
+
+
+(* Declaration of the security properties *)
+
+
+
+(* The main system *)
+process 0

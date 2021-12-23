@@ -1,0 +1,115 @@
+(*** Needham Schroeder protocol with randomized assymetric encryption ***)
+
+(*
+  We consider a randomized asymetric encryption/decryption:
+    - Each time we encrypt with the same public key and same plain text, we obtain
+      a different cipher
+    - Decrypting with the secret key gives the plain text
+
+  Description of the protocol:
+    A -> B : { (na, pkA) }_pkB    na fresh
+    B -> A : { (na,nb) }_pkA      nb fresh, A checks that na is the one he created
+    A -> B : { nb }_pkB           A checks that nb is the one he created
+
+  Secrecy of nb
+  Authentication:
+    - If Initiator finished receiving nb then the correct honest receiver created nb
+    - If Receiver finished receiving na then the correct honest initiator created na
+
+  Scenario:
+    - Two honest participants
+    - Unbounded number of sessions
+*)
+
+(* Types Declarations *)
+
+type rand.    (* Random in the encryption *)
+type pkey.    (* Public key *)
+type skey.    (* Secret key *)
+type cipher.  (* The cipher produced by an encryption *)
+
+(* Declarations of functions, equational theories and rewrite rules *)
+
+fun pk(skey):pkey.
+fun encrypt(bitstring,rand,pkey):cipher.
+fun decrypt(cipher,skey):bitstring
+reduc
+  forall m:bitstring, k:skey, r:rand;
+  decrypt(encrypt(m,r,pk(k)),k) = m
+.
+
+letfun enc(x:bitstring,k:pkey) = new r:rand; encrypt(x,r,k).
+
+(* Declarations of constants and names *)
+
+free c:channel.
+
+(* Other declarations *)
+
+event Honest(pkey).
+
+(* Event for secrecy *)
+
+event SecrecyTarget(pkey,bitstring).
+
+(* Events for authentication *)
+
+event Istart(pkey,pkey,bitstring).
+event Ifinish(pkey,pkey,bitstring).
+event Rstart(pkey,pkey,bitstring).
+event Rfinish(pkey,pkey,bitstring).
+
+(* Sanity events *)
+
+event SanityI.
+event SanityR.
+
+(* Declarations of the processes for each role. *)
+
+let Initiator(skA:skey,pkB:pkey) =
+  new na:bitstring;
+  event Istart(pk(skA),pkB,na);
+  out(c,enc((na,pk(skA)),pkB));
+
+  in(c,x:cipher);
+  let (na':bitstring,nb:bitstring) = decrypt(x,skA) in
+  if na = na' then
+  out(c,enc(nb,pkB));
+  event Ifinish(pk(skA),pkB,nb);
+  event SanityI
+.
+
+let Receiver(skB:skey) =
+  in(c,x:cipher);
+  let (na:bitstring,pkA:pkey) = decrypt(x,skB) in
+  new nb:bitstring;
+  event Rstart(pkA,pk(skB),nb);
+  event SecrecyTarget(pkA,nb);
+  out(c,enc((na,nb),pkA));
+
+  in(c,y:cipher);
+  if decrypt(y,skB) = nb then
+  event Rfinish(pkA,pk(skB),na);
+  event SanityR
+.
+
+(* Declaration of the security properties *)
+
+query pkA:pkey,nb:bitstring; event(SecrecyTarget(pkA,nb)) && event(Honest(pkA)) && attacker(nb).
+
+query pkA,pkB:pkey,nb:bitstring; event(Ifinish(pkA,pkB,nb)) && event(Honest(pkB)) ==> event(Rstart(pkA,pkB,nb)).
+query pkA,pkB:pkey,na:bitstring; event(Rfinish(pkA,pkB,na)) && event(Honest(pkA)) ==> event(Istart(pkA,pkB,na)).
+
+(* Sanity checks *)
+query pkA:pkey, s:bitstring; event(SecrecyTarget(pkA,s)).
+query event(SanityI).
+query event(SanityR).
+
+(* The main system *)
+process
+  new skA:skey;
+  new skB:skey;
+  event Honest(pk(skA));
+  event Honest(pk(skB));
+  out(c,(pk(skA),pk(skB)));
+  (!Initiator(skA,pk(skB)) | !Receiver(skB))

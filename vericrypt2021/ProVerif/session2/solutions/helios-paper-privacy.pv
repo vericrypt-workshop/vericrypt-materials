@@ -1,0 +1,84 @@
+(* Helios voting protocol
+
+  - Randomized assymetric encryption {v}_pkB^r  (with random r)
+  - Signature
+
+  We consider only three voters (A,B,C) with C compromised.
+
+  S -> V : r     (r is a random)
+  V -> B : [ { v }_pkB^(r,r') ]_skA   r' fresh
+
+  B receives all the votes, checks the signature of each of them,
+  decrypt them and output them in parallel (to mix them).
+
+  We want to prove vote privacy.
+
+  TODO :
+    1) Model the primitives necessary
+    2) Model the processes
+    3) Express the vote privacy property.
+    4) ProVerif should not be able to prove it.
+      Extract from it a possible attack
+    5) Model that the server does not allow dupplicate ballots
+    6) Prove vote privacy
+    7) How would you model the protocol for unbounded number of voter ?
+       How would you model revote ?
+*)
+
+
+type skey.
+type pkey.
+type vkey.
+type nonce.
+
+set preciseActions = true.
+
+(* Public key cryptography *)
+
+fun pk(skey):pkey.
+fun aenc(bitstring,bitstring,pkey):bitstring.
+fun adec(bitstring,skey):bitstring
+reduc forall m:bitstring, r:bitstring, k:skey; adec(aenc(m,r,pk(k)),k) = m.
+
+(* Signatures *)
+
+fun sign(bitstring,skey):bitstring.
+fun vk(skey):vkey.
+fun checksign(bitstring,vkey):bitstring
+reduc forall x:bitstring, y:skey; checksign(sign(x,y),vk(y)) = x.
+
+free c:channel.
+free k:skey [private]. (* election key *)
+free sk_A:skey [private]. (* models an authenticated channel *)
+free sk_B:skey [private].
+free sk_C:skey.
+
+free cand1:bitstring. (* candidate 1 *)
+free cand2:bitstring. (* candidate 2 *)
+
+(* The signing key of C is given to the attacker. Moreover, all public keys are disclosed.*)
+let setup =
+  out(c, vk(sk_A)) ;
+  out(c, vk(sk_B)) ;
+  out(c, pk(k)) ;
+  out(c, sk_C).
+
+let voter(sk:skey, vote:bitstring) =
+  in(c,x_rs:bitstring);    (* Takes some randomnes from the server as well. *)
+  new r:bitstring;
+  out (c, sign(aenc(vote,(x_rs,r),pk(k)), sk)).
+
+let board =
+  in (c,x1:bitstring) ; let y1 = checksign(x1,vk(sk_A)) in
+  in (c,x2:bitstring) ; let y2 = checksign(x2,vk(sk_B)) in
+  in (c,x3:bitstring) ; let y3 = checksign(x3,vk(sk_C)) in
+  if y1 <> y2 && y2 <> y3 && y1 <> y3 then
+  let v1 = adec(y1, k) in
+  let v2 = adec(y2, k) in
+  let v3 = adec(y3, k) in
+  (out(c,choice[v1,v2]) | out(c,choice[v2,v1]) | out(c,v3)).
+
+process
+  setup | voter(sk_A,choice[cand1,cand2]) | voter(sk_B,diff [cand2,cand1])  | board
+
+(* Or you can use equivalence of two processes. *)

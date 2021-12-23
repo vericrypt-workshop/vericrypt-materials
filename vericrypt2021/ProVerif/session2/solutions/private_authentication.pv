@@ -1,0 +1,71 @@
+(* Private Authentication
+
+  Assymmetric encryption
+
+  A -> B :  { (na, pkA) }_pkB   na fresh
+  B -> A :  { (na, nb, pkB) }_pkA    if the checks passed (nb fresh)
+            { nb' }_pkB               otherwise
+
+  Show that this protocol preserves the anonymity of the Initiator
+*)
+
+type skey.
+type pkey.
+type cipher.
+
+(* Functions *)
+
+fun pk(skey):pkey.
+fun enc(bitstring,pkey):cipher.
+fun dec(cipher,skey):bitstring
+reduc
+  forall x:bitstring,k:skey; dec(enc(x,pk(k)),k) = x.
+
+(* Declaration of names & constants *)
+
+free c:channel.
+
+(* Roles *)
+
+let Initiator(skA:skey,pkB:pkey) =
+  new na:bitstring;
+  out(c,enc((na,pk(skA)),pkB));
+
+  in(c,x:cipher);
+  let (=na,nb:bitstring,=pkB) = dec(x,skA) in
+  0
+.
+
+let Receiver(skB:skey,pkA:pkey) =
+  in(c,x:cipher);
+  let (na:bitstring,=pkA) = dec(x,skB) in
+    new nb:bitstring;
+    out(c,enc((na,nb,pk(skB)),pkA))
+  else
+    new nb':bitstring;
+    out(c,enc(nb',pk(skB)))
+.
+
+let system_1 =
+  new skA:skey;
+  new skB:skey;
+  new skC:skey;
+  let pkA = pk(skA) in
+  let pkB = pk(skB) in
+  let pkC = pk(skC) in
+  out(c,(pkA,pkB,pkC));
+
+  Initiator(skA,pkB) | Receiver(skB,pkA).
+
+let system_2 =
+  new skA:skey;
+  new skB:skey;
+  new skC:skey;
+  let pkA = pk(skA) in
+  let pkB = pk(skB) in
+  let pkC = pk(skC) in
+  out(c,(pkA,pkB,pkC));
+
+  Initiator(skC,pkB) | Receiver(skB,pkC).
+
+equivalence system_1 system_2

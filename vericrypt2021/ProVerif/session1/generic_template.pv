@@ -1,0 +1,34 @@
+(*** Generic template for writing a ProVerif model ***)
+
+(* When possible, informal description of the protocol in comments
+    A -> B : ...
+    B -> A : ...
+    ...
+*)
+
+(* Types Declarations *)
+
+
+
+(* Declarations of functions, equational theories and rewrite rules *)
+
+
+
+(* Declarations of constants and names *)
+
+
+
+(* Other declarations *)
+
+
+
+(* Declarations of the processes for each role. *)
+
+
+
+(* Declaration of the security properties *)
+
+
+
+(* The main system *)
+process 0

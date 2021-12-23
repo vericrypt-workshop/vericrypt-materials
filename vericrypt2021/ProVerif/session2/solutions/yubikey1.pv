@@ -1,0 +1,104 @@
+(* Yubikey protocol.
+
+  Symmetric encryption
+
+  The Server shares a secret key k with B as well as a secret id, s_ID.
+  It has one memory cell c_{S,B} per "Button" B that stores k, s_ID and two
+  natural numbers.
+
+  Each B maintain a counter c_B
+
+  B -> S : { (s_ID, r, n) }_k   where r is fresh and n is the current value c_B.
+  B increment c_B
+
+  If current value of c_{S,B} is (k,s_ID,i,n'),
+  S check that n > n'
+  "Accept" the login n' as the i+1 th login.
+  Update its cell to (k,s_ID,i+1,n)
+*)
+
+(* Need (at least) two events
+  1. Event 'Login(sID,i,n) indicates that the i-th login for sID was accepted with value n
+  2. Event 'Press(sID,n)' indicates that the button with sID as identity was press for the n-th time.
+*)
+
+(* We want a server talking to an unbounded number of buttons, an unbounded number of times. *)
+
+(* 2 Security properties
+  1. If a login was accepted for a certain value then the correct button must have created it
+  2. Two different successful authentications are necessarily with different value.
+*)
+
+(* TO DO :
+  1. Write the model
+  2. Sanity check it
+  3. Write the queries
+  4. Normally ProVerif will not be able to directly prove all your query.
+    Use some axioms to make it work (hint: notice some value are strictly increasing)
+*)
+
+(* Types *)
+
+type id.
+type key.
+type cipher.
+
+fun senc(bitstring,key):cipher.
+reduc forall k:key,m:bitstring; sdec(senc(m,k),k) = m.
+
+(* Declarations of constants and names *)
+
+free c:channel.
+
+(* Other declarations *)
+
+event Login(id,key,nat,nat).
+event Pressed(id,key,nat).
+
+event TargetChannel(channel).
+
+lemma cSB:channel,k:key,sid:key,i,n:nat;
+  mess(cSB,(k,sid,i,n)) && attacker(k) && event(TargetChannel(cSB)) [induction].
+
+(* Roles *)
+
+let Server(cSB:channel) =
+  !
+  in(c, x:cipher);
+  in(cSB, (k:key,sid:id,i:nat,n':nat)) [precise];
+  let (=sid,r:bitstring,n:nat) = sdec(x,k) in
+    if n < n' then
+      event Login(sid,k,i+1,n);
+      out(cSB, (k,sid,i+1,n))
+    else out(cSB, (k,sid,i,n'))
+  else out(cSB, (k,sid,i,n')).
+
+let Button(cB:channel,k:key,sid:id) =
+  !
+  in(cB,i:nat);
+  event Pressed(sid,k,i);
+  new r:bitstring;
+  out(c,senc((sid,r,i),k));
+  out(cB,i+1).
+
+(* Declaration of the security properties *)
+
+query sid:id, k:key, i,n:nat;
+  event(Login(sid,k,i,n)) ==> event(Pressed(sid,k,n)).
+
+query sid:id, k:key, i,i',n:nat;
+  event(Login(sid,k,i,n)) && event(Login(sid,k,i',n)) ==> i = i' [induction].
+
+process
+  !
+  new k:key;
+  new sid:id;
+  new cSB:channel;
+  event TargetChannel(cSB);
+  new cB:channel;
+      out(cB,0)
+    | out(cSB,(k,sid,0,0))
+    | (!in(cB,i:nat); out(cB,i))
+    | (!in(cSB,x:bitstring); out(cSB,x))
+    | !Server(cSB)
+    | !Button(cB,k,sid)
